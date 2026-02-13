@@ -3,7 +3,7 @@
 Interactive client demo: a **risk scan by 1–3 photos** (runs **locally in the browser**).
 
 ## Demo
-Open: https://akemi-aiai.github.io/casual-anatomy-risk-scan/
+Open: https://akemi-aiai.github.io/casual-anatomy-scan/
 
 ## What it does
 - Upload **1–3 photos**
