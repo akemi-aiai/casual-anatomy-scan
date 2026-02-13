@@ -1,0 +1,2073 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Casual Anatomy: Risk Scan </title>
+  <meta name="description" content="Casual Anatomy — интерактивный риск-скан товара по 1–3 фото. Локально в браузере. © rara_illustra" />
+
+  <style>
+    :root{
+      --bg:#f8f7ff;
+      --surface:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:rgba(2,6,23,.10);
+
+      --lilac:#b79cff;
+      --lilac2:#9b7bff;
+      --lilacSoft:rgba(183,156,255,.16);
+
+      --good:#16a34a;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+
+      --shadow: 0 16px 40px rgba(2,6,23,.10);
+      --radius:18px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(900px 420px at 12% -10%, var(--lilacSoft), transparent 60%),
+        radial-gradient(900px 420px at 92% 0%, rgba(2,6,23,.06), transparent 55%),
+        linear-gradient(180deg, #fbfaff, var(--bg));
+    }
+
+
+    .top{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter:saturate(160%) blur(10px);
+      background:rgba(248,247,255,.88);
+      border-bottom:1px solid rgba(2,6,23,.08);
+    }
+    .topbar{
+      max-width:1100px;
+      margin:0 auto;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background:var(--lilac2);
+      box-shadow:0 0 0 6px rgba(183,156,255,.18);
+      flex:0 0 auto;
+    }
+    .brandTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brandSub{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      margin-top:2px;
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(2,6,23,.10);
+      background:rgba(255,255,255,.65);
+      color:rgba(2,6,23,.72);
+      white-space:nowrap;
+    }
+    .lang{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .langLink{
+      text-decoration:none;
+      font-family:var(--mono);
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(2,6,23,.10);
+      color:#64748b;
+      background:rgba(255,255,255,.7);
+      white-space:nowrap;
+      font-weight:900;
+      transition:.15s ease;
+    }
+
+    .langLink:hover{
+      color:#0f172a;
+    }
+
+    .langLink.active:hover{
+      color:#fff;
+    }
+
+    .langLink.active{
+      background: #b79cff;
+      border-color: #9b7bff;
+      color: #fff;
+    }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns:1fr; }
+      .wrap{ padding:12px; }
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .pad{ padding:16px; }
+
+    .h1{ margin:0 0 6px 0; font-size:20px; font-weight:900; }
+    .p{ margin:0; color:var(--muted); line-height:1.5; font-size:14px; }
+    .small{ font-size:12px; color:var(--muted); line-height:1.45; }
+    .mono{ font-family:var(--mono); }
+
+    .field{ display:grid; gap:8px; margin-top:12px; }
+    .label{ font-size:13px; font-weight:900; color:rgba(2,6,23,.85); }
+    select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(2,6,23,.12);
+      background:#fff;
+      outline:none;
+      font-weight:800;
+    }
+    select:focus{
+      border-color: rgba(155,123,255,.55);
+      box-shadow:0 0 0 4px rgba(155,123,255,.18);
+    }
+
+
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(2,6,23,.12);
+      background:#fff;
+      color:var(--text);
+      cursor:pointer;
+      font-weight:900;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+    .btnPrimary{
+      background: linear-gradient(135deg, var(--lilac), var(--lilac2));
+      border-color: rgba(155,123,255,.35);
+      color:#140a2b;
+      box-shadow:0 14px 30px rgba(155,123,255,.18);
+    }
+    .btnGhost{
+      background:transparent;
+    }
+    .btnSmall{
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+    }
+
+
+    .uploader{
+      margin-top:12px;
+      border-radius:18px;
+      padding:14px;
+      border:1px dashed rgba(155,123,255,.55);
+      background:rgba(183,156,255,.10);
+    }
+    input[type="file"]{ display:none; }
+
+    .drop{
+      border-radius:16px;
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(2,6,23,.06);
+      padding:12px;
+      display:grid;
+      gap:10px;
+    }
+    .thumbs{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin-top:6px;
+    }
+    .thumb{
+      aspect-ratio: 3 / 4;
+      border-radius:16px;
+      border:1px solid rgba(2,6,23,.12);
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(2,6,23,.04), rgba(2,6,23,.00));
+      position:relative;
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; }
+    .thumb .x{
+      position:absolute; top:8px; right:8px;
+      width:28px; height:28px;
+      border-radius:999px;
+      display:grid; place-items:center;
+      background:rgba(255,255,255,.95);
+      border:1px solid rgba(2,6,23,.12);
+      cursor:pointer;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .divider{ height:1px; background:rgba(2,6,23,.10); margin:10px 0; opacity:.35; }
+
+
+    .kpi{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns: 1fr 2fr;
+      gap:10px;
+    }
+    @media (max-width:560px){
+      .kpi{ grid-template-columns:1fr; }
+    }
+
+    .kpi .item{
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:16px;
+      padding:10px;
+      background:rgba(255,255,255,.70);
+    }
+    .kpi .num{ font-family:var(--mono); font-weight:900; font-size:18px; }
+    .kpi .lbl{ font-size:12px; color:var(--muted); }
+
+    .kpiWide{ display:grid; gap:10px; }
+
+    .kpiScale{
+      position:relative;
+      height:18px;
+    }
+    .kpiTrack{
+      position:absolute; inset:0;
+      border-radius:999px;
+      background:rgba(2,6,23,.06);
+      border:1px solid rgba(2,6,23,.08);
+    }
+    .kpiTicks{
+      position:absolute; inset:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:0 10px;
+    }
+    .kpiTicks span{
+      width:6px; height:6px;
+      border-radius:999px;
+      background:rgba(2,6,23,.12);
+    }
+
+    .kpiMarker{
+      position:absolute;
+      top:50%;
+      left:0%;
+      transform:translate(-50%,-50%);
+      width:16px; height:16px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--lilac), var(--lilac2));
+      border:2px solid rgba(255,255,255,.92);
+      box-shadow:0 10px 20px rgba(155,123,255,.22);
+      opacity:0;
+      transition:left .22s ease, opacity .2s ease;
+    }
+    .kpiMarker.on{ opacity:1; }
+
+    .kpiEnds{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color:var(--muted);
+      margin-top:-2px;
+    }
+
+    /* Phone / Preview */
+    .phone{
+      border-radius:28px;
+      border:1px solid rgba(2,6,23,.10);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      background:rgba(255,255,255,.80);
+    }
+    .phoneTop{
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(2,6,23,.08);
+      background:rgba(255,255,255,.70);
+    }
+    .screen{
+      position:relative;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:560px;
+    }
+    @media (max-width:980px){
+      .screen{ min-height: calc(100svh - 160px); }
+    }
+
+    .panel{
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(255,255,255,.92);
+    }
+
+    /* Advice column */
+    .adviceCol{ display:grid; gap:10px; }
+    .adviceCard{
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.92);
+    }
+    .adviceTitle{
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .adviceText{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .adviceFinal{
+      margin-top:10px;
+      border-top:1px dashed rgba(2,6,23,.14);
+      padding-top:10px;
+      font-weight:950;
+    }
+
+    /* Preview image */
+    .heroImg{
+      border-radius:18px;
+      border:1px solid rgba(2,6,23,.10);
+      overflow:hidden;
+      background:linear-gradient(135deg, rgba(183,156,255,.16), rgba(2,6,23,.02));
+      aspect-ratio: 16 / 10;
+      position:relative;
+    }
+    .heroImg img{
+      width:100%; height:100%;
+      object-fit:cover;
+      display:block;
+      filter:saturate(1.05);
+    }
+    .heroOverlay{
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(2,6,23,.0), rgba(2,6,23,.22));
+      display:flex;
+      align-items:flex-end;
+      padding:12px;
+      color:white;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    /* Scan overlay */
+    .scanOverlay{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:0;
+      transition:.2s ease;
+    }
+    .scanOverlay.on{ opacity:1; }
+    .scanLine{
+      position:absolute; left:0; right:0; height:2px;
+      top:-2px;
+      background:rgba(155,123,255,.98);
+      box-shadow:0 0 12px rgba(155,123,255,.35), 0 0 55px rgba(155,123,255,.16);
+      animation: scanDown 2.1s linear infinite;
+    }
+    @keyframes scanDown{ 0%{top:-2px} 100%{top:100%} }
+
+    /* Progress */
+    .progressWrap{
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.92);
+    }
+    .bar{
+      height:10px; border-radius:999px;
+      background:rgba(2,6,23,.08);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(135deg, var(--lilac), var(--lilac2));
+      transition: width .22s ease;
+    }
+
+    /* Steps */
+    .stepList{ display:grid; gap:8px; }
+    .step{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border:1px solid rgba(2,6,23,.10);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.94);
+    }
+    .chip{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(155,123,255,.28);
+      background:rgba(183,156,255,.14);
+      color:rgba(20,10,43,.95);
+      white-space:nowrap;
+      font-weight:900;
+    }
+    .desc{ color:var(--muted); font-size:13px; line-height:1.35; }
+    .tick{
+      width:22px; height:22px;
+      border-radius:999px;
+      border:1px solid rgba(2,6,23,.14);
+      background:rgba(2,6,23,.03);
+      flex:0 0 auto;
+    }
+    .tick.on{ border-color:rgba(22,163,74,.35); background:rgba(22,163,74,.12); }
+    .tick.on::after{
+      content:"";
+      display:block;
+      width:10px; height:6px;
+      border-left:3px solid rgba(22,163,74,.95);
+      border-bottom:3px solid rgba(22,163,74,.95);
+      transform: translate(6px,6px) rotate(-45deg);
+    }
+
+    /* Result badge */
+    .badge{
+      font-family:var(--mono);
+      font-weight:900;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(2,6,23,.10);
+      background:rgba(2,6,23,.03);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .badge.good{ border-color:rgba(22,163,74,.25); background:rgba(22,163,74,.12); color:rgba(22,163,74,.95); }
+    .badge.warn{ border-color:rgba(245,158,11,.25); background:rgba(245,158,11,.12); color:rgba(180,83,9,.95); }
+    .badge.bad{  border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.12); color:rgba(185,28,28,.95); }
+
+    .twoCol{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:560px){ .twoCol{ grid-template-columns:1fr; } }
+
+    .li{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px 0;
+      border-top:1px dashed rgba(2,6,23,.12);
+    }
+    .li:first-child{ border-top:none; padding-top:0; }
+    .ico{
+      width:22px; height:22px; border-radius:10px;
+      background:rgba(183,156,255,.14);
+      border:1px solid rgba(155,123,255,.22);
+      flex:0 0 auto;
+    }
+
+    .footerNote{
+      margin-top:10px;
+      border-top:1px solid rgba(2,6,23,.08);
+      padding-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    /* Mobile sticky action bar */
+    .mobileActions{
+      display:none;
+      position:sticky;
+      bottom:10px;
+      z-index:10;
+      gap:10px;
+      padding:10px;
+      border-radius:18px;
+      border:1px solid rgba(2,6,23,.10);
+      background:rgba(255,255,255,.85);
+      backdrop-filter: blur(10px) saturate(160%);
+      box-shadow: 0 16px 40px rgba(2,6,23,.12);
+    }
+    @media (max-width:980px){
+      .mobileActions{ display:flex; }
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(2,6,23,.92);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:900;
+      font-size:13px;
+      box-shadow:0 12px 30px rgba(0,0,0,.18);
+      z-index:9999;
+      opacity:0;
+      transition:opacity .15s ease;
+      max-width:min(92vw, 560px);
+    }
+    .toast.on{ opacity:1; }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <div class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div style="min-width:0">
+          <div class="brandTitle">Casual Anatomy: Risk Scan</div>
+          <div class="brandSub">Интерактивный скан • © rara_illustra</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="pill" id="stagePill">Загрузка</div>
+        <nav class="lang" aria-label="Language">
+          <a href="./" class="langLink active" aria-current="page">RU</a>
+          <a href="./en/" class="langLink">EN</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- LEFT: controls -->
+      <section class="card">
+        <div class="pad">
+          <div class="h1">Проверка товара до покупки</div>
+          <p class="p">
+            Выбери категорию, загрузи <b>1–3 фото</b> и за 20 секунд получишь развернутый ответ. 
+            <b>Это не ИИ и не гарантия качества. </b> Мы просто оцениваем риск по тому, 
+            что реально видно на фото.
+          </p>
+
+          <div class="field">
+            <div class="label">Категория товара</div>
+            <select id="categorySelect" aria-label="Категория товара">
+              <option value="universal">Для любых вещей</option>
+              <option value="clothing">Одежда</option>
+              <option value="leather">Кожа / замша</option>
+              <option value="bag">Сумки / аксессуары</option>
+              <option value="shoes">Обувь</option>
+            </select>
+            <div class="small" id="categoryHint"></div>
+          </div>
+
+          <div class="uploader">
+            <div class="drop" id="dropZone">
+              <div class="btnrow">
+                <button class="btn btnPrimary" id="btnPick" type="button">Добавить фото</button>
+                <button class="btn btnGhost" id="btnDemo" type="button">Демо</button>
+              </div>
+
+              <div class="small">
+                Лимит: <b>1–3</b> фото. Поддержка HEIC зависит от браузера: если не открываетс, то сохрани как JPG или PNG.
+              </div>
+
+              <input id="fileInput" type="file" accept="image/*" multiple />
+
+              <div class="thumbs" id="thumbs" aria-label="Превью фотографий"></div>
+
+              <div class="divider"></div>
+
+              <div class="btnrow">
+                <button class="btn btnPrimary" id="btnStart" type="button" disabled>Запустить скан</button>
+                <button class="btn" id="btnClear" type="button" disabled>Очистить</button>
+                <button class="btn btnSmall" id="btnCopyLink" type="button">Скопировать ссылку</button>
+              </div>
+
+              <div class="small" id="hintText">
+                Если продавец не показывает ткань, швы и фурнитуру, то это уже риск. Скан подскажет, что спросить.
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <div class="item">
+              <div class="num" id="kpiPhotos">0</div>
+              <div class="lbl">Фото</div>
+            </div>
+
+            <div class="item kpiWide">
+              <div class="lbl" style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                <span>Оценка</span>
+                <span class="mono" id="kpiRating">—</span>
+              </div>
+
+              <div class="kpiScale" id="kpiScale" aria-label="Шкала оценки">
+                <div class="kpiTrack"></div>
+                <div class="kpiTicks" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div class="kpiMarker" id="kpiMarker" aria-hidden="true"></div>
+              </div>
+
+              <div class="kpiEnds">
+                <span>нет</span>
+                <span>wooow</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <div class="mono" style="font-weight:900; font-size:12px; color:rgba(2,6,23,.70)">Политика конфиденциальности</div>
+            <div class="divider"></div>
+            <div class="small">
+              • Обработка фото идёт <b>локально</b> в браузере: сайт не отправляет изображения на сервер.<br>
+              • Не загружай персональные данные (лица, документы, адреса, платежные QR).<br>
+              • Результат - это рекомендация. Не экспертиза, не подтверждение качества и не гарантия. Решение о покупке пользователь принимает самостоятельно.<br>
+              • Загружая фото, вы подтверждаете, что имеете право использовать эти изображения (свои фото/скриншоты, либо с разрешением правообладателя).</b>.
+              • Права на концепт, дизайн и тексты принадлежат <b>© rara_illustra</b>.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="phone">
+        <div class="phoneTop">
+          <div class="mono" style="font-size:12px; color:rgba(2,6,23,.72)">
+            CASUAL ANATOMY • <span id="phoneMode">Готово</span>
+          </div>
+          <div class="mono" style="font-size:12px; color:rgba(2,6,23,.55)">
+            <span id="timer">0:00</span> / 0:20
+          </div>
+        </div>
+
+        <div class="screen" id="screen">
+          <div class="scanOverlay" id="scanOverlay"><div class="scanLine"></div></div>
+
+          <div id="viewReady">
+            <div class="heroImg" id="heroImg">
+              <div class="heroOverlay" id="heroOverlayText">Загрузи 1–3 фото и нажми START</div>
+            </div>
+
+            <div class="panel">
+              <div class="badge" id="readyBadge">Скан-профиль: Для любых вещей</div>
+              <div style="height:10px"></div>
+              <div style="font-weight:950; font-size:20px">Проверка по фотографии за 20 секунд</div>
+              <div class="small" id="readySubtitle" style="margin-top:8px"></div>
+              <div style="height:12px"></div>
+              <div class="btnrow">
+                <button class="btn btnPrimary" id="btnStart2" type="button" disabled>START</button>
+                <button class="btn btnSmall" id="btnShare" type="button">Поделиться</button>
+              </div>
+            </div>
+
+            <div class="footerNote">Подходит для любого маркетплейса. Можно грузить скрины карточки товара.</div>
+          </div>
+
+          <div id="viewScan" style="display:none">
+            <div class="progressWrap">
+              <div class="mono" style="font-size:12px; color:rgba(2,6,23,.65); display:flex; justify-content:space-between; gap:10px">
+                <span id="scanTitle">Скан</span>
+                <span id="pct" style="color:rgba(155,123,255,.95)">0%</span>
+              </div>
+              <div style="height:10px"></div>
+              <div class="bar"><div id="barFill"></div></div>
+              <div class="small" style="margin-top:10px" id="scanTip">Подготовка…</div>
+            </div>
+
+            <div class="stepList" id="steps" style="margin-top:10px"></div>
+
+            <div class="footerNote" id="decodeNote" style="display:none">
+              Некоторые фото не удалось декодировать (часто это HEIC). Результат рассчитан частично по метаданным.
+            </div>
+          </div>
+
+          <div id="viewResult" style="display:none">
+            <div class="panel">
+              <div class="badge" id="levelBadge">РЕЗУЛЬТАТ</div>
+              <div style="height:10px"></div>
+
+              <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:950; font-size:24px" id="levelTitle">—</div>
+                  <div class="small" style="margin-top:6px" id="levelSubtitle">—</div>
+                </div>
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end">
+                  <div class="pill" id="scorePill">ОЦЕНКА: —</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="mono" style="font-size:12px; color:rgba(2,6,23,.65); margin-bottom:10px">ФОТО-РАЗБОР</div>
+              <div id="obsList"></div>
+            </div>
+
+            <div class="twoCol">
+              <div class="panel">
+                <div class="mono" style="font-size:12px; color:rgba(2,6,23,.65); margin-bottom:10px">КОНТРОЛЬ КАЧЕСТВА</div>
+                <div id="flagsList" class="small"></div>
+              </div>
+              <div class="panel">
+                <div class="mono" style="font-size:12px; color:rgba(2,6,23,.65); margin-bottom:10px">Я ХОЧУ ТЕБЕ СКАЗАТЬ, ЧТО</div>
+                <div id="compliment" style="font-weight:950; font-size:16px; line-height:1.25"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="mono" style="font-size:12px; color:rgba(2,6,23,.65); margin-bottom:10px">
+                ГОТОВЫЕ СООБЩЕНИЯ ПРОДАВЦУ (RU + 中文)
+              </div>
+              <div id="sellerMsgs" class="small"></div>
+
+              <div style="height:12px"></div>
+              <div class="btnrow">
+                <button class="btn" id="btnCopySeller" type="button">Скопировать продавцу</button>
+                <button class="btn" id="btnShare2" type="button">Поделиться</button>
+                <button class="btn" id="btnBack" type="button">Назад</button>
+              </div>
+
+              <div class="footerNote">© rara_illustra • Casual Anatomy: Risk Scan • Для маркетплейса</div>
+            </div>
+          </div>
+
+          <!-- Mobile sticky actions -->
+          <div class="mobileActions" aria-label="Действия">
+            <button class="btn btnPrimary" id="btnPickMobile" type="button" style="flex:1">Добавить</button>
+            <button class="btn" id="btnStartMobile" type="button" style="flex:1" disabled>Старт</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /*  DATA */
+    const MAX_PHOTOS = 3;
+
+    const COMPLIMENTS = [
+      "Ты видишь то, что другие пропускают. Это и есть грамотная покупка.",
+      "Ты не ведёшься на картинку, ты проверяешь.",
+      "Ты умеешь отличать стиль от маркетинга. Это редкость.",
+      "Подружка, ты покупаешь головой, а не эмоцией.",
+      "У тебя точный радар на качество, прямо как у байера.",
+      "Ты не ведёшься на картинку. Ты проверяешь, ну, моя!",
+      "Замечаешь детали, которые другие пролистывают. Проверяешь, прежде чем влюбиться. Моя школа!",
+      "Это не придирчивость — это навык выбирать вещи, которые выглядят хорошо не только на фото, а и в жизни, со временем, в движении.",
+      "У тебя редкий дар: отличать стиль от заклинаний маркетологов.",
+      "Ты не усложняешь. Ты просто знаешь, что тебе нужно.",
+      "Ты выбираешь так, что потом не жалеешь.",
+      "Если честно, ты уже давно выбираешь как профи",
+      "Смотри, ты сразу полезла в детали. Это о многом говорит.",
+      "Смотри, ты даже не обсуждаешь «нравится — не нравится», ты смотришь, как сделано.",
+      "Смотри, ты сейчас делаешь паузу. Импульсивная покупка нам с тобой не нужна!",
+      "Подружка, если что-то не откликается — это тоже ответ.",
+      "Ты не обязана это брать, чтобы доказать вкус.",
+      "Ты можешь пройти мимо, ничего не теряешь.",
+      "Ты выбираешь так, как тебе комфортно. И за это я тебя ценю! Ну, не  только за это, конечно. ",
+      "Я вижу, ты уже знаешь, чего не хочешь. Это тоже решение",
+      "Ты выбираешь не из страха упустить. ",
+      "Ты уже знаешь, где твоя планка и не опускаешь её, yes, giirl. ",
+      "Ты выбираешь вещи, которые не надо спасать стилем. ",
+      "Ты собираешь гардероб, а не впечатление. "
+    ];
+
+    const CATEGORIES = {
+      universal: {
+        label:"Универсально",
+        hint:"Разберём фото по делу: детали, чёткость и где может быть подвох.",
+        readySubtitle:"Скан оценит риск по фото и подскажет, что запросить у продавца для верного решения.",
+        scanTitle:"Скан рисков",
+        steps:[
+          { key:"coverage", title:"Детали", desc:"Есть ли крупные планы важных элементов." },
+          { key:"clarity",  title:"Чёткость", desc:"Читаются ли мелкие детали и фактура." },
+          { key:"consistency", title:"Согласованность", desc:"Похоже ли, что кадры одной вещи." },
+          { key:"risk", title:"Фото-риск", desc:"Блики, пересвет, сильная обработка." },
+          { key:"seller", title:"Что спросить", desc:"Собираем вопросы продавцу (RU+中文)." }
+        ],
+        flags:{
+          no_details:"Не хватает крупных планов у деталей, попроси фото поближе.",
+          blurry:"Фото размытые, легко ошибиться. Попроси фото в хорошем качестве.",
+          too_glossy:"Есть пересвет и блики, значит материал и цвет могут отличаться вживую.",
+          inconsistent:"Кадры выглядят как из разных источников. Уточни реальные фото именно этого товара.",
+          only_marketing:"Слишком «идеально» и без деталей — это похоже на маркетинговую подборку, а мы с тобой не выкидываем деньги на ветер, денюжки нам нужны!"
+        },
+        askPool:["фото деталей крупно","фото без фильтров при дневном свете","фото изнутри/обратной стороны"],
+        sellerMessages:[
+          { ru:"Здравствуйте! Можете прислать фото товара крупно при дневном свете: материал/края/детали?", zh:"可以发一下... 吗？最好自然光 (材质/边缘/细节近景)。" },
+          { ru:"Пожалуйста, пришлите фото изнутри/обратной стороны (если есть).", zh:"麻烦发一下内部/反面的照片（如果有的话）。" },
+          { ru:"Здравствуйте! Можно фото фурнитуры крупно (молния/карабины/крепления) при дневном свете?", zh:"你好！可以发一下五金细节近景吗（拉链/扣子/卡扣/连接处）？最好自然光。" },
+          { ru:"Можно фото мест крепления ручек/ремня крупно (самая нагруженная зона).", zh:"可以拍一下手柄/肩带连接处近景吗？这是最受力的位置。" },
+          { ru:"Подскажите вес сумки и размеры в см (ширина/высота/глубина).", zh:"请问包的重量和实测尺寸（宽/高/厚，厘米）是多少？" },
+          { ru:"Можно фото молнии вблизи: зубцы/ход молнии/есть ли маркировка.", zh:"可以拍一下拉链近景吗？拉链齿、顺滑度、是否有标识。" },
+          { ru:"Покрытие фурнитуры не стирается? можно фото без пересвета, чтобы увидеть оттенок металла.", zh:"五金电镀会不会掉色？可以不过曝拍一下看真实金属颜色吗？" },
+          { ru:"Есть ли запах у материала? (иногда важно понять качество обработки)", zh:"材质有没有明显气味？（想了解工艺处理情况）" },
+          { ru:"Комплектация: пыльник/коробка/упаковка? можно фото комплекта.", zh:"有没有防尘袋/盒子/包装？可以拍一下配件吗？" },
+          { ru:"Если есть отделения/карманы — можно фото, как они прошиты и закреплены?", zh:"如果有隔层/内袋，可以拍一下缝合和固定处近景吗？" },
+          { ru:"Проверьте перед отправкой: нет ли царапин, перекоса швов, пятен.", zh:"发货前麻烦检查：是否有划痕、走线歪、污渍等。" },
+          { ru:"Можно фото сумки на весу (на руке), чтобы понять, как она «держит» форму.", zh:"可以拎起来拍一下吗？挺括度和垂坠感。" }
+        ]
+      },
+      clothing: {
+        label:"Одежда",
+        hint:"Ткань, швы, форма и симметрия.",
+        readySubtitle:"Если нет детальной карточки ткани и швов, то есть риск купить не то.",
+        scanTitle:"Скан одежды",
+        steps:[
+          { key:"coverage", title:"Ткань и детали", desc:"Проверяем ткань, ворот, манжеты и низ." },
+          { key:"clarity",  title:"Швы", desc:"Видны ли строчки." },
+          { key:"consistency", title:"Форма", desc:"Линии, карманы, посадка без перекоса." },
+          { key:"risk", title:"Фото-риск", desc:"Обработка и пересветы." },
+          { key:"seller", title:"Что спросить", desc:"Запросим состав (RU+中文)." }
+        ],
+        flags:{
+          no_details:"Не хватает ткани/швов крупно — сложно понять качество.",
+          blurry:"Размыто: нельзя оценить строчку и фактуру.",
+          too_glossy:"Пересвет: ткань может выглядеть плотнее, чем есть.",
+          inconsistent:"Уточни реальные кадры вещи.",
+          only_marketing:"Много «красоты», мало полезных деталей."
+        },
+        askPool:["фото швов крупно","фото бирки/состава","фото изнанки"],
+        sellerMessages:[
+          { ru:"Здравствуйте! Можно фото ткани и швов крупно при дневном свете (без фильтров)?", zh:"你好！可以发一下面料和缝线近景吗？请用自然光、不加滤镜。" },
+          { ru:"Пришлите, пожалуйста, состав и фото изнанки.", zh:"麻烦发一下成分标签和反面（内侧）照片。" },
+          { ru:"Можно фото манжет/низа/воротника крупно, чтобы оценить обработку?", zh:"可以发一下袖口/下摆/领口的近景吗？想确认做工细节。" },
+          { ru:"Можно фото внутренней обработки швов (оверлок/подгиб)?", zh:"可以拍一下内侧走线和收边的细节吗？比如锁边/包边/折边。" },
+          { ru:"Есть ли запасная пуговица/нитка? можно фото фурнитуры крупно.", zh:"有备用纽扣/备用线吗？纽扣或五金细节可以拍近景吗?" },
+          { ru:"Можно короткое видео 5–10 сек без фильтров. Нужно показать ткань и посадку.", zh:"可以发一个5–10秒不加滤镜的视频吗？展示面料和版型。" },
+          { ru:"Какой вес вещи? (иногда это хорошо показывает плотность ткани)", zh:"这件衣服大概多重？（重量能大致反映面料厚薄）" },
+          { ru:"Материал колется/просвечивает? можно честно подсказать по ощущениям.", zh:"面料会扎/会透吗？可以如实说明一下穿着感受吗？" },
+          { ru:"Можно фото при дневном свете рядом с белым листом (для точного оттенка)?", zh:"可以自然光下放一张白纸对比拍照吗？想确认色差。" }        ]
+      },
+      leather: {
+        label:"Кожа / замша",
+        hint:"Фокус на фактуре, строчке, фурнитуре.",
+        readySubtitle:"Кожа на фото часто «обманывает» бликами. Нужны крупные планы.",
+        scanTitle:"Скан кожи/замши",
+        steps:[
+          { key:"coverage", title:"Фактура", desc:"Есть ли фильтры?" },
+          { key:"clarity",  title:"Кромки/строчки", desc:"Видно ли аккуратность швов и обработку края?" },
+          { key:"consistency", title:"Форма", desc:"Силуэт держится? Нет перекоса, «пузырей», заломов?" },
+          { key:"risk", title:"Блики", desc:"Сильный глянец может скрывать фактуру и визуально удешевлять." },
+          { key:"seller", title:"Что спросить", desc:"Запросим честные фото и короткое видео." }
+        ],
+        flags:{
+          no_details:"Нет фото фактуры и кромок, риск «покрытия под кожу».",
+          blurry:"Размыто. Нельзя оценить зерно и кромки.",
+          too_glossy:"Глянец. Вживую материал может выглядеть дешевле.",
+          inconsistent:"Кадры не сходятся по фактуре, уточни реальные фото.",
+          only_marketing:"Похоже на обработанные кадры."
+        },
+        askPool:["фото фактуры крупно без бликов","фото кромок и строчек крупно","фото изнутри/подклада"],
+        sellerMessages:[
+          { ru:"Здравствуйте! Можно фото фактуры (зерно) крупно при дневном свете без бликов и фильтров?", zh:"你好！可以发一下皮革纹理（纹路/粒面）的近景特写吗？请用自然光、不加滤镜，尽量避免反光。" },
+          { ru:"Пришлите, пожалуйста, фото кромок и строчек крупным планом (края и швы).", zh:"麻烦发一下边缘（封边/油边）和缝线的近景照片（边缘和接缝处）。" },
+          { ru:"Можно фото изнутри/подкладка и фото фурнитуры (молния/кнопки) крупно?", zh:"可以发一下内里/衬里的照片，以及五金细节的近景吗？比如拉链/按扣/扣件" }
+        ]
+      },
+      bag: {
+        label:"Сумки / аксессуары",
+        hint:"Фурнитура, кант, швы, подкладка и форма.",
+        readySubtitle:"Сумки чаще всего «падают» по фурнитуре и кромке.",
+        scanTitle:"Скан сумок",
+        steps:[
+          { key:"coverage", title:"Фурнитура", desc:"Молнии, карабины и крепления." },
+          { key:"clarity",  title:"Кромка/кант", desc:"Видно ли окраску и аккуратность." },
+          { key:"consistency", title:"Форма", desc:"Силуэт и симметрия." },
+          { key:"risk", title:"Фото-риск", desc:"Размыто, пересвет, неполные материалы." },
+          { key:"seller", title:"Что спросить", desc:"Запросим подкладку и кромку (RU+中文)." }
+        ],
+        flags:{
+          no_details:"Не хватает фурнитуры крупным планом.",
+          blurry:"Нельзя оценить кант и металл.",
+          too_glossy:"Цвет и материал могут отличаться.",
+          inconsistent:"Кадры выглядят как разные.",
+          only_marketing:"Слишком красиво, подозрительно даже."
+        },
+        askPool:["фото фурнитуры крупно","фото кромки/канта","фото подкладки и швов внутри"],
+        sellerMessages: [
+          { ru:"Здравствуйте! Можно фото ткани и швов крупно при дневном свете (без фильтров)?", zh:"你好！可以发一下面料和缝线的近景吗？请用自然光，不加滤镜。" },
+          { ru:"Пришлите, пожалуйста, фото бирки с составом и фото изнанки.", zh:"麻烦发一下成分标签的照片，以及反面（内侧）的照片。" },
+          { ru:"Сделайте, пожалуйста, фото шва вблизи: строчка ровная? есть торчащие нитки?", zh:"麻烦拍一下缝线的近景：走线是否均匀？有没有线头？" },
+          { ru:"Если есть принт/вышивка — можно фото крупно и с изнанки?", zh:"如果有印花/刺绣，可以拍一下近景和反面（内侧）吗？" },
+          { ru:"Подскажите условия возврата/обмена, если размер не подойдёт.", zh:"如果尺码不合适，退换货规则是什么？" }
+
+        ]
+      }, 
+      shoes: {
+        label:"Обувь",
+        hint:"Фокус на подошве, стыке, клее, форме носка и пятки, стельки.",
+        readySubtitle:"Если нет фото стыка подошвы, то это плохой знак.",
+        scanTitle:"Скан обуви",
+        steps:[
+          { key:"coverage", title:"Подошва и стык", desc:"Есть ли крупный план места соединения подошвы и верха." },
+          { key:"clarity",  title:"Швы и клей", desc:"Видна ли аккуратность: нет ли излишков клея, неровных строчек, зазоров." },
+          { key:"consistency", title:"Форма", desc:"Носок и пятка: симметрия пары, без перекоса и деформаций." },
+          { key:"risk", title:"Фото-риск", desc:"Размыто, пересвет или мало ракурсов — по таким фото легко ошибиться." },
+          { key:"seller", title:"Что спросить", desc:"Запросим крупные планы стыка и фото внутренней части обуви (RU+中文)." }
+        ],
+        flags:{
+          no_details:"Нет фото стыка подошвы/деталей — главный красный флаг обуви.",
+          blurry:"Размыто: нельзя оценить швы и следы клея.",
+          too_glossy:"Пересвет: материал и фактура могут отличаться.",
+          inconsistent:"Кадры выглядят разными — уточни, что это реальная пара.",
+          only_marketing:"Без полезных деталей."
+        },
+        askPool:["фото стыка подошвы крупно","фото носка и пятки крупно","фото внутри/стельки"],
+        sellerMessages: [
+          { ru:"Здравствуйте! Можно фото стыка подошвы и верха крупно (сбоку), при дневном свете?", zh:"你好！可以发一下鞋底与鞋面连接处的近景吗（侧面），最好自然光。" },
+          { ru:"Пришлите, пожалуйста, фото носка и пятки крупно (форма/симметрия).", zh:"麻烦发一下鞋头和鞋跟近景（形状和对称性）。" },
+          { ru:"Можно фото внутри: стелька и внутренняя отделка/швы?", zh:"可以发一下鞋内细节吗：鞋垫、内里做工和缝线细节。" },
+          { ru:"Можно фото подошвы снизу крупно (рисунок/качество/ровность).", zh:"可以拍一下鞋底纹路近景吗？想看做工和是否平整。" },
+          { ru:"Есть следы клея на стыках?", zh:"连接处有没有明显溢胶？可以不过曝实拍一下吗？" },
+          { ru:"Подскажите длину стельки в см для выбранного размера (реальный замер).", zh:"请问这个尺码的鞋垫长度实测是多少厘米？" },
+          { ru:"Можно фото сгиба носка (как материал ведёт себя при сгибании)?", zh:"可以拍一下鞋头弯折效果吗？看材质折痕情况。" },
+          { ru:"Можно короткое видео 5–10 сек: пройтись по швам/стыку/внутри.", zh:"可以发一个5–10秒视频吗？重点拍一下接缝/连接处/鞋内。" },
+          { ru:"Есть ли усиление пятки? Можно фото задника внутри.", zh:"后跟有加固吗？可以拍一下后跟内侧吗？" },
+          { ru:"Съёмная стелька? Можно показать её и как сделана изнутри обувь.", zh:"鞋垫可拆吗？可以展示鞋垫以及鞋内结构吗？" },
+          { ru:"Проверьте перед отправкой: нет ли перекоса пары, царапин, брака.", zh:"发货前麻烦检查：两只鞋是否对称，有无划痕/瑕疵。" },
+          { ru:"Какой материал подкладки/внутри? Можно фото и описание.", zh:"内里/衬里是什么材质？可以拍照并简单说明吗？" },
+          { ru:"Подскажите условия возврата/обмена, если размер не подойдёт.", zh:"如果尺码不合适，退换货规则是什么？" }
+        ]
+      }
+    };
+
+    /* =======================
+       DOM
+    ======================= */
+    const el = (id)=>document.getElementById(id);
+
+    const fileInput = el("fileInput");
+    const btnPick = el("btnPick");
+    const btnPickMobile = el("btnPickMobile");
+    const dropZone = el("dropZone");
+    const thumbs = el("thumbs");
+
+    const btnStart = el("btnStart");
+    const btnStart2 = el("btnStart2");
+    const btnStartMobile = el("btnStartMobile");
+    const btnClear = el("btnClear");
+    const btnDemo = el("btnDemo");
+    const btnCopyLink = el("btnCopyLink");
+
+    const stagePill = el("stagePill");
+    const phoneMode = el("phoneMode");
+    const timerEl = el("timer");
+
+    const categorySelect = el("categorySelect");
+    const categoryHint = el("categoryHint");
+    const readyBadge = el("readyBadge");
+    const readySubtitle = el("readySubtitle");
+
+    const heroImg = el("heroImg");
+    const heroOverlayText = el("heroOverlayText");
+
+    const scanTitle = el("scanTitle");
+    const scanOverlay = el("scanOverlay");
+    const pct = el("pct");
+    const barFill = el("barFill");
+    const scanTip = el("scanTip");
+    const stepsEl = el("steps");
+    const decodeNote = el("decodeNote");
+
+    const viewReady = el("viewReady");
+    const viewScan = el("viewScan");
+    const viewResult = el("viewResult");
+
+    const levelBadge = el("levelBadge");
+    const levelTitle = el("levelTitle");
+    const levelSubtitle = el("levelSubtitle");
+    const scorePill = el("scorePill");
+    const obsList = el("obsList");
+    const flagsList = el("flagsList");
+    const complimentEl = el("compliment");
+    const sellerMsgs = el("sellerMsgs");
+
+    const btnCopySeller = el("btnCopySeller");
+    const btnShare = el("btnShare");
+    const btnShare2 = el("btnShare2");
+    const btnBack = el("btnBack");
+
+    const kpiPhotos = el("kpiPhotos");
+    const kpiRating = el("kpiRating");
+    const kpiMarker = el("kpiMarker");
+
+    const toastEl = el("toast");
+
+
+    let filesState = [];
+    let previewUrls = [];
+    let demoMode = false;
+    let activeCategoryKey = "universal";
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    const fmtTime = (sec)=>`0:${String(Math.max(0,Math.floor(sec))).padStart(2,"0")}`;
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("on");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>toastEl.classList.remove("on"), 1600);
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (c)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    function revokePreviews(){
+      previewUrls.forEach((u)=>{ try{ URL.revokeObjectURL(u); }catch{} });
+      previewUrls = [];
+    }
+
+    function isImageFile(f){
+      if(!f) return false;
+      if(f.type && f.type.startsWith("image/")) return true;
+      const name = (f.name || "").toLowerCase();
+      if(/\.(jpg|jpeg|png|webp|heic|heif|gif|bmp)$/i.test(name)) return true;
+      return false;
+    }
+
+    function setButtons(){
+      const ok = filesState.length >= 1 && filesState.length <= MAX_PHOTOS;
+      btnStart.disabled = !ok;
+      btnStart2.disabled = !ok;
+      btnStartMobile.disabled = !ok;
+      btnClear.disabled = (filesState.length === 0 && !demoMode);
+    }
+
+    function updateKpi(meta){
+      const clarityValue = (typeof meta === "number") ? meta : meta?.clarity;
+      const scoreValue   = (typeof meta === "object" && meta) ? meta.score : undefined;
+      const levelValue   = (typeof meta === "object" && meta) ? meta.level : undefined;
+
+      kpiPhotos.textContent = String(filesState.length);
+
+      if(filesState.length === 0){
+        kpiRating.textContent = "—";
+        kpiMarker.classList.remove("on");
+        return;
+      }
+
+      const cov =
+        filesState.length === 1 ? 0.38 :
+        filesState.length === 2 ? 0.62 : 0.84;
+
+      let v;
+      if(typeof scoreValue === "number"){
+        v = clamp(scoreValue / 100, 0, 1);
+      } else {
+        const c = (typeof clarityValue === "number") ? clarityValue : 0.52;
+        v = clamp(0.55*c + 0.45*cov, 0, 1);
+      }
+
+      let label = "Норм";
+      if(levelValue === "НЕ СЕГОДНЯ") label = "Не сегодня";
+      else if(levelValue === "ДОРОГО") label = "ЭТО ОНО! Вауу";
+      else if(v < 0.28) label = "Не сегодня";
+      else if(v < 0.48) label = "Сомнительно";
+      else if(v < 0.85) label = "Норм";
+      else label = "ЭТО ОНО! Вауу";
+
+      kpiRating.textContent = label;
+      kpiMarker.classList.add("on");
+      kpiMarker.style.left = `${Math.round(v * 100)}%`;
+    }
+
+    function getCategory(){ return CATEGORIES[activeCategoryKey] || CATEGORIES.universal; }
+
+    function applyCategoryUI(){
+      const cat = getCategory();
+      categoryHint.textContent = cat.hint;
+      readyBadge.textContent = `Скан-профиль: ${cat.label}`;
+      readySubtitle.textContent = cat.readySubtitle;
+      scanTitle.textContent = cat.scanTitle;
+      heroOverlayText.textContent = (filesState.length ? "Готово. Нажми START — и смотри результаты скана." : "Загрузи 1–3 фото и нажми START");
+      const liveOverlay = document.getElementById("heroOverlay");
+      if(liveOverlay) liveOverlay.textContent = heroOverlayText.textContent;
+    }
+
+    categorySelect.addEventListener("change", ()=>{
+      activeCategoryKey = categorySelect.value;
+      applyCategoryUI();
+      toReady();
+    });
+
+    function toReady(){
+      phoneMode.textContent = "Готово";
+      stagePill.textContent = "СТАДИЯ: ЗАГРУЗКА";
+      viewReady.style.display = "";
+      viewScan.style.display = "none";
+      viewResult.style.display = "none";
+      scanOverlay.classList.remove("on");
+      timerEl.textContent = "0:00";
+      decodeNote.style.display = "none";
+    }
+    function toScan(){
+      phoneMode.textContent = "Скан";
+      stagePill.textContent = "СТАДИЯ: СКАН";
+      viewReady.style.display = "none";
+      viewScan.style.display = "";
+      viewResult.style.display = "none";
+      scanOverlay.classList.add("on");
+      decodeNote.style.display = "none";
+    }
+    function toResult(){
+      phoneMode.textContent = "Результат";
+      stagePill.textContent = "СТАДИЯ: РЕЗУЛЬТАТ";
+      viewReady.style.display = "none";
+      viewScan.style.display = "none";
+      viewResult.style.display = "";
+      scanOverlay.classList.remove("on");
+    }
+
+    function renderThumbs(){
+      revokePreviews();
+      thumbs.innerHTML = "";
+
+      const hero = heroImg;
+      hero.innerHTML = "";
+      const heroChild = document.createElement("div");
+      heroChild.className = "heroOverlay";
+      heroChild.id = "heroOverlay";
+      heroChild.textContent = heroOverlayText.textContent;
+
+      if(filesState.length){
+        const url = URL.createObjectURL(filesState[0]);
+        previewUrls.push(url);
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = "preview";
+        hero.appendChild(img);
+      }
+      hero.appendChild(heroChild);
+
+      filesState.forEach((f, idx)=>{
+        const url = URL.createObjectURL(f);
+        previewUrls.push(url);
+
+        const box = document.createElement("div");
+        box.className = "thumb";
+        box.innerHTML = `
+          <img src="${url}" alt="preview ${idx+1}" />
+          <div class="x" title="Удалить">×</div>
+        `;
+        box.querySelector(".x").addEventListener("click", ()=>{
+          filesState.splice(idx, 1);
+          demoMode = false;
+          renderThumbs();
+          updateKpi();
+          setButtons();
+          applyCategoryUI();
+        });
+        thumbs.appendChild(box);
+      });
+
+      applyCategoryUI();
+    }
+
+    function addFiles(newFiles){
+      demoMode = false;
+
+      const filtered = newFiles.filter(isImageFile);
+      if(filtered.length === 0){
+        toast("Не вижу изображений. Добавь JPG/PNG/WEBP (HEIC зависит от браузера).");
+        return;
+      }
+
+      const merged = [...filesState, ...filtered];
+      if(merged.length > MAX_PHOTOS){
+        toast(`Лимит ${MAX_PHOTOS} фото. Лишние не добавлены.`);
+      }
+      filesState = merged.slice(0, MAX_PHOTOS);
+
+      renderThumbs();
+      updateKpi();
+      setButtons();
+    }
+
+    function openPicker(){
+      fileInput.click();
+    }
+
+    btnPick.addEventListener("click", openPicker);
+    btnPickMobile.addEventListener("click", openPicker);
+
+    heroImg.addEventListener("click", ()=>{
+      if(filesState.length === 0) openPicker();
+    });
+
+    fileInput.addEventListener("change", (e)=>{
+      const list = Array.from(e.target.files || []);
+      addFiles(list);
+      fileInput.value = "";
+    });
+
+    dropZone.addEventListener("dragover", (e)=>{ e.preventDefault(); });
+    dropZone.addEventListener("drop", (e)=>{
+      e.preventDefault();
+      const list = Array.from(e.dataTransfer?.files || []);
+      addFiles(list);
+    });
+
+    btnClear.addEventListener("click", ()=>{
+      filesState = [];
+      demoMode = false;
+      renderThumbs();
+      updateKpi();
+      setButtons();
+      toReady();
+    });
+
+    btnCopyLink.addEventListener("click", async ()=>{
+      const url = location.href;
+      try{
+        await navigator.clipboard.writeText(url);
+        toast("Ссылка скопирована");
+      }catch{
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); toast("Ссылка скопирована"); }
+        catch{ toast("Не получилось скопировать"); }
+        finally{ ta.remove(); }
+      }
+    });
+
+    async function sharePage(extraText=""){
+      const text = extraText || "Casual Anatomy Scan — быстрый риск-скан по фото";
+      try{
+        if(navigator.share){
+          await navigator.share({ title:"Casual Anatomy: Risk Scan", text, url:location.href });
+        } else {
+          await navigator.clipboard.writeText(`${text}\n${location.href}`);
+          toast("Скопировано для отправки");
+        }
+      }catch{
+        toast("Не удалось поделиться");
+      }
+    }
+    btnShare.addEventListener("click", ()=>sharePage());
+    btnShare2.addEventListener("click", ()=>sharePage());
+
+    async function makeDemoImageBlob(){
+      const c = document.createElement("canvas");
+      c.width = 900; c.height = 600;
+      const g = c.getContext("2d");
+
+      const grd = g.createLinearGradient(0,0,900,600);
+      grd.addColorStop(0,"#f2edff");
+      grd.addColorStop(1,"#ffffff");
+      g.fillStyle = grd; g.fillRect(0,0,900,600);
+
+      g.fillStyle = "rgba(155,123,255,.18)";
+      for(let i=0;i<10;i++){
+        g.beginPath();
+        g.arc(120+i*72, 130+(i%2)*36, 68, 0, Math.PI*2);
+        g.fill();
+      }
+
+      g.fillStyle = "#0f172a";
+      g.font = "900 44px system-ui";
+      g.fillText("Casual Anatomy: Risk Scan", 60, 365);
+      g.fillStyle = "rgba(15,23,42,.70)";
+      g.font = "600 22px system-ui";
+      g.fillText("Demo image (local scan)", 60, 410);
+
+      return await new Promise((res)=>c.toBlob(res, "image/jpeg", 0.92));
+    }
+
+    btnDemo.addEventListener("click", async ()=>{
+      demoMode = true;
+      const blob = await makeDemoImageBlob();
+      const demoFile = new File([blob], "demo-casual-anatomy.jpg", { type:"image/jpeg", lastModified: Date.now() });
+      filesState = [demoFile];
+      renderThumbs();
+      updateKpi();
+      setButtons();
+      toReady();
+    });
+
+    function seedFromFiles(files, categoryKey){
+      let s = 2166136261;
+      const mix = (n)=>{ s ^= n; s = Math.imul(s, 16777619); s >>>= 0; };
+      files.forEach((f)=>{
+        const str = `${f.name}|${f.size}|${f.lastModified}`;
+        for(let i=0;i<str.length;i++) mix(str.charCodeAt(i));
+      });
+      for(let i=0;i<categoryKey.length;i++) mix(categoryKey.charCodeAt(i));
+      if(demoMode) mix(777);
+      return s >>> 0;
+    }
+    function mulberry32(a){
+      return function(){
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function pick(rng, arr){ return arr[Math.floor(rng() * arr.length)]; }
+
+    function shuffleWithRng(arr, rng){
+      const a = [...arr];
+      for(let i=a.length-1; i>0; i--){
+        const j = Math.floor(rng() * (i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function getAdviceSeed(ctx){
+      ctx = ctx || {};
+      var s = "";
+
+      if (ctx.seed != null) s = String(ctx.seed);
+      else if (ctx.photoHash != null) s = String(ctx.photoHash);
+      else if (ctx.fingerprint != null) s = String(ctx.fingerprint);
+      else if (typeof filesState !== "undefined" && filesState && filesState.length){
+        s = filesState.map(function(f){
+          return (f && (f.hash || f.name)) ? (f.hash || f.name) : "";
+        }).join("|");
+      } else {
+        s = "default";
+      }
+
+      return s;
+    }
+
+    function hashToInt(str){
+      let h = 2166136261;
+      for (let i=0; i<str.length; i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function pickOne(seedStr, salt, arr){
+      if(!arr || !arr.length) return null;
+      const n = hashToInt(seedStr + "|" + salt);
+      return arr[n % arr.length];
+    }
+
+      const POOLS_QA = {
+        diagnosis: {
+          risky: [
+            { k:"dx_risk", t:"Риск высокий", d:"Без дополнительных деталей легко промахнуться." },
+            { k:"dx_no", t:"Не сегодня", d:"Сейчас это больше похоже на маркетинг, чем на качественную вещь." }
+          ],
+          ok: [
+            { k:"dx_ok", t:"В целом ок", d:"Выглядит нормально, но лучше кое-что уточнить у продавца." },
+            { k:"dx_mid", t:"Есть вопросы", d:"Покупка возможна, но давай запросим детали." }
+          ],
+          expensive: [
+            { k:"dx_good", t:"Выглядит роскошно", d:"Если продавец не начнёт юлить по деталям, можно брать!" },
+            { k:"dx_conf", t:"Пахнет на богатом", d:"Красных флагов не вижу. Если это фейк — он хотя бы старается выглядеть достойно." }
+          ]
+        },
+
+        actions: {
+          lowCoverage: [
+            { k:"cov1", t:"Мало деталей", d:"Добавь 1–2 карточки крупным планом, чтобы были видны швы." }
+          ],
+          lowClarity: [
+            { k:"clr1", t:"Низкая чёткость", d:"Попроси кадр ближе и в хорошем качестве." }
+          ],
+          glossy: [
+            { k:"gl1", t:"Блики", d:"Попроси фото при дневном свете у окна, без фильтров и пересвета." }
+          ],
+          lowConsistency: [
+            { k:"con1", t:"Похоже на разные источники", d:"Уточни реальные фото именно этого товара (один фон, ракурс, свет)." }
+          ],
+          highRisk: [
+            { k:"rk1", t:"Слишком много риска", d:"Без дополнительных фото лучше пропустить. Либо пусть присылают детали, либо мы не покупаем!" }
+          ],
+          midRisk: [
+            { k:"rk2", t:"Риск средний", d:"Сейчас красиво, но не информативно. 1–2 полезных кадра решают всё." }
+          ]
+        },
+
+        checks: 
+        [
+          { k:"chk1", t:"Лучший маркер", d:"Крупный план швов  — место, где умирает маркетинг и начинается реальность." },
+          { k:"chk2", t:"Цвет и материал", d:"Цвет проверяется не словами, а дневным светом. Мы люди деловые, нам нужны факты." },
+          { k:"chk3", t:"Быстрый тест", d:"Видео 5–10 секунд без фильтров." },
+          { k:"chk4", t:"Нормальный продавец", d:"Адекватный продавец спокойно показывает изнанку и детали. Если избегают — это тоже ответ." },
+        ],
+        final: {
+          risky: [
+            "Если продавец не даёт детали, то проходим мимо и берём вариант, где всё показывают без танцев с бубном.",
+            "Если детали прячут, значит, там есть что прятать. Дальше не идём"
+          ],
+          ok: [
+            "Норм, но без контрольных фото я бы не расслаблялась.",
+            "Не провал, но и не вау. Добей деталями!"
+          ],
+          expensive: [
+            "Выглядит так, будто стоит брать. Если продавец не начнёт юлить по деталям — это да.",
+            "Сейчас это ближе к «да», чем к «подумаю»."
+          ]
+        }
+      };
+
+      function buildEditorialAdvice(category, ctx, level){
+        const seed = getAdviceSeed(ctx);
+
+        const bucket =
+          level === "ДОРОГО" ? "expensive" :
+          level === "НОРМ"   ? "ok" : "risky";
+
+        const picks = [];
+
+        picks.push(pickOne(seed, "dx", POOLS_QA.diagnosis[bucket]));
+
+        const lowCoverage = (ctx.coverage < 0.60) || (typeof filesState !== "undefined" && filesState.length === 1);
+        const lowClarity = ctx.clarity < 0.40;
+        const lowConsistency = (ctx.consistency < 0.45) && (typeof filesState !== "undefined" && filesState.length >= 2);
+        const glossy = !!ctx.glossy;
+
+        if (lowCoverage) picks.push(pickOne(seed, "act_cov", POOLS_QA.actions.lowCoverage));
+        if (lowClarity) picks.push(pickOne(seed, "act_clr", POOLS_QA.actions.lowClarity));
+        if (glossy) picks.push(pickOne(seed, "act_gl", POOLS_QA.actions.glossy));
+        if (lowConsistency) picks.push(pickOne(seed, "act_con", POOLS_QA.actions.lowConsistency));
+
+        if (ctx.riskScore >= 0.55) picks.push(pickOne(seed, "act_rk_hi", POOLS_QA.actions.highRisk));
+        else if (ctx.riskScore >= 0.25) picks.push(pickOne(seed, "act_rk_mid", POOLS_QA.actions.midRisk));
+
+        picks.push(pickOne(seed, "chk", POOLS_QA.checks));
+        const out = [];
+        const seen = new Set();
+        for (const it of picks){
+          if (!it || !it.k || seen.has(it.k)) continue;
+          seen.add(it.k);
+          out.push({ t: it.t, d: it.d });
+          if (out.length >= 4) break;
+        }
+
+        const final = pickOne(seed, "final", POOLS_QA.final[bucket]) || "Ок.";
+
+        return { tips: out, final };
+      }
+
+
+    function buildObservations(category, ctx, rng){
+      const seed = getAdviceSeed(ctx);
+
+      // helpers
+      const addPool = (arr, into)=>{ if(Array.isArray(arr)) into.push(...arr.filter(Boolean)); };
+      const pickStable = (salt, arr)=> pickOne(seed, salt, arr) || (arr && arr[0]) || "";
+      const uniq = (arr)=>{
+        const out = [];
+        const seen = new Set();
+        for(const x of arr){
+          const k = String(x || "").trim();
+          if(!k || seen.has(k)) continue;
+          seen.add(k);
+          out.push(k);
+        }
+        return out;
+      };
+
+      const band =
+        ctx.riskScore >= 0.55 ? "HIGH" :
+        ctx.riskScore >= 0.25 ? "MID"  : "LOW";
+
+      const lowCoverage = (ctx.coverage < 0.60) || (typeof filesState !== "undefined" && filesState.length === 1);
+      const lowClarity  = ctx.clarity < 0.45;
+      const lowConsistency = (ctx.consistency < 0.45) && (typeof filesState !== "undefined" && filesState.length >= 2);
+      const glossy = !!ctx.glossy;
+
+      const VIS_POOLS = {
+        lowCoverage: [
+          "По фото мало данных: не хватает ракурсов и деталей крупным планом.",
+          "Кадров недостаточно, по одному общему фото легко промахнуться.",
+          "Показали картинку, но не показали доказательства. Детали где?",
+          "Не хватает контрольных зон: швы, кромки, стыки крупным планом."
+        ],
+        lowClarity: [
+          "Чёткость слабая, мелкие детали и фактура читаются плохо.",
+          "Сейчас это похоже на «посмотри, но не рассматривай». Дай резкость.",
+          "Разрешение/резкость не позволяют оценить строчку и материал.",
+          "По такому фото можно влюбиться, но нельзя проверить. Попроси другое."
+        ],
+        glossy: [
+          "Есть пересвет, материал и цвет могут отличаться вживую.",
+          "Похоже на свет, который продаёт. А мне нужен свет, который показывает.",
+          "Блики скрывают фактуру: без них будет понятнее, что за материал.",
+          "Сильно блестит, сложно честно оценить поверхность."
+        ],
+        lowConsistency: [
+          "Есть ощущение разных источников: кадры не очень согласуются между собой.",
+          "Фото выглядят как из разных сетов, уточни, что это один и тот же товар.",
+          "Слишком разные условия съёмки: есть риск, что часть кадров «для красоты»",
+          "Кадры не складываются в одну историю, запроси реальные фото одним дублем."
+        ],
+        ok: [
+          "Детали читаются достаточно хорошо: уже можно делать выводы.",
+          "По фото видно больше, чем обычно — это неплохая база для решения.",
+          "Линии читаются, общая картина выглядит честно.",
+          "Кадры выглядят достаточно информативно — это плюс."
+        ]
+      };
+
+      let visCandidates = [];
+      if (lowCoverage) addPool(VIS_POOLS.lowCoverage, visCandidates);
+      if (lowClarity) addPool(VIS_POOLS.lowClarity, visCandidates);
+      if (glossy) addPool(VIS_POOLS.glossy, visCandidates);
+      if (lowConsistency) addPool(VIS_POOLS.lowConsistency, visCandidates);
+
+      // если всё ок — ок-пул
+      if (visCandidates.length === 0) addPool(VIS_POOLS.ok, visCandidates);
+
+      visCandidates = uniq(visCandidates);
+      const visLine = pickStable("obs_vis", visCandidates);
+
+      // 2) ЛИНИЯ "РИСК" — привязка к оценке
+      const RISK_POOLS = {
+        LOW: [
+          "По картинке держится хорошо: риск низкий, «красных» зон не вижу.",
+          "По фото риск небольшой — можно рассматривать дальше.",
+          "Низкий риск: если цена и условия ок — выглядит как вариант.",
+          "Пока всё выглядит аккуратно: можно переходить к финальной проверке.."
+        ],
+        MID: [
+          "РЕсть вопросы: риск средний, нужна одна-две проверки по деталям.",
+          "Пока «норм», но лучше уточнить по деталям (шов, кромка, стык).",
+          "Есть вопросы по фото: риск средний, нужна одна-две проверки.",
+          "Сомнения не критичные, но есть: попроси фото у окна в тени без фильтров."
+        ],
+        HIGH: [
+          "Красных флагов многовато: без проверок я бы не советовала.",
+          "Если продавец не даёт нормальные кадры — это тоже ответ. Риск высокий.",
+          "По фото красных флагов многовато — без проверок не советую.",
+          "Сейчас выглядит подозрительно: либо дополнительное фото, либо «не сегодня»."
+        ]
+      };
+
+      const riskLine =
+        band === "HIGH" ? pickStable("obs_risk_high", RISK_POOLS.HIGH) :
+        band === "MID"  ? pickStable("obs_risk_mid",  RISK_POOLS.MID)  :
+                          pickStable("obs_risk_low",  RISK_POOLS.LOW);
+
+      const TIP_POOLS = {
+        universal: [
+          "Самый честный маркер качества — крупный план соединений.",
+          "Дневной свет — самый честный помощник для оценки.",
+          "Адекватный продавец показывает изнанку без истерики. Это нормальный запрос.",
+          "Видео на 5–10 секунд без фильтров быстро снимает лишние вопросы.",
+          "Крупный план проблемных зон (края, углы, стыки) — лучший детектор аккуратности.",
+          "Слишком идеально и без деталей — слышу нотки «Маркетинг №5», а не качества.",
+          "Если что-то не показывают — обычно именно там и проблема."
+        ],
+        color: [
+          "Если важен цвет, попроси фото у окна и без фильтров.",
+          "Попроси фото рядом с белым листом, так легче понять реальный оттенок.",
+          "Попроси 2 кадра: один на свету, один в тени — так честнее по цвету.",
+          "Не верь идеальному тону, попроси фото без автокоррекции."
+        ],
+        detail: [
+          "Попроси фото изнанки, там часто прячется экономия.",
+          "Три полезных фото лучше десяти красивых — попроси полезные.",
+          "Попроси фото под другим углом, фактура сразу становится понятнее."
+        ],
+        marketing: [
+          "Слишком идеально и без деталей — слышу нотки «Маркетинг №5», а не качества.",
+          "Когда много «глянца» и ноль фактуры — это обычно красный флаг.",
+          "Попроси один честный крупный план материала — и станет всё ясно.",
+          "Каталожная красота не отвечает на вопрос «как сделано». Проси шов."
+        ],
+        bag: [
+          "Если есть фурнитура, попроси кадр, где видно покрытие и крепления вблизи.",
+          "Попроси фото мест крепления ручек и ремня — это самая нагруженная зона.",
+          "Попроси фото молнии крупно: зубцы и ход.",
+          "Попроси фото углов сумки: именно там видно, как держится покрытие."
+        ],
+        shoes: [
+          "Главное для обуви — стык подошвы и верха крупно. Если его нет, попроси обязательно.",
+          "Попроси фото подошвы снизу крупным планом, литьё, рисунок, ровность.",
+          "Попроси фото носка и пятки: симметрия пары как хороший маникюр. Не обязана бросаться в глаза, но сразу задаёт уровень.",
+          "Попроси фото стельки и обработки швов.",
+          "Попроси фото сгиба носка, нам надо знать, как материал ведёт себя при сгибании."
+        ],
+        clothing: [
+          "Попроси фото строчки, ровность шва и нитки сразу всё показывают.",
+          "Попроси фото состава и изнанки, так как там видно, как вещь реально сделана.",
+          "Попроси фото манжет, низа, воротника крупным планом.",
+          "Слишком идеально и без деталей — слышу нотки «Маркетинг №5», а не качества.",
+          "Попроси фото на ровной поверхности без складок, так видно форму и перекосы.",
+          "Если есть принт или вышивка, то попроси фото крупно и с изнанки."
+        ],
+        highRisk: [
+          "Если отвечают уклончиво, смело проходи мимо. Вариантов много, нервы одни.",
+          "Если детали прячут, значит, там есть что прятать. Не рискуем.",
+          "Если ответы уклончивые — смело проходи мимо. Вариантов много.",
+          "Не покупай «на удачу»."
+        ],
+        midRisk: [
+          "Риск средний. Попроси один честный кадр шва, и станет понятно.",
+          "Попроси короткое видео без фильтров — это быстрее переписки.",
+          "Попроси фото с изнанки.",
+          "Сомнения лечатся деталями, не убеждением, проси детали."
+        ],
+        lowRisk: [
+          "Выглядит ровно. Низкий риск.",
+          "Если цена ок, сейчас выглядит вполне убедительно.",
+          "Низкий риск: если продавец подтвердит детали, можно брать без нервов.",
+          "Сделай маленькую проверку: фото у окна без фильтров — и можно решать."
+        ]
+      };
+
+      let tipCandidates = [];
+      // по ситуации
+      if (lowCoverage) addPool(TIP_POOLS.detail, tipCandidates);
+      if (lowClarity) addPool(TIP_POOLS.detail, tipCandidates);
+      if (glossy) addPool(TIP_POOLS.color, tipCandidates);
+      if (lowConsistency) addPool(TIP_POOLS.marketing, tipCandidates);
+
+      // по band
+      if (band === "HIGH") addPool(TIP_POOLS.highRisk, tipCandidates);
+      if (band === "MID") addPool(TIP_POOLS.midRisk, tipCandidates);
+      if (band === "LOW") addPool(TIP_POOLS.lowRisk, tipCandidates);
+
+      if (activeCategoryKey === "bag") addPool(TIP_POOLS.bag, tipCandidates);
+      if (activeCategoryKey === "shoes") addPool(TIP_POOLS.shoes, tipCandidates);
+      if (activeCategoryKey === "clothing") addPool(TIP_POOLS.clothing, tipCandidates);
+
+
+      addPool(TIP_POOLS.universal, tipCandidates);
+
+      tipCandidates = uniq(tipCandidates);
+      const tipLine = pickStable("obs_tip", tipCandidates);
+
+      const askLine = `Я бы попросила: ${ctx.ask}.`;
+
+      return [visLine, riskLine, tipLine, askLine];
+    }
+
+    function buildStepsUI(category){
+      stepsEl.innerHTML = "";
+      category.steps.forEach((s, idx)=>{
+        const row = document.createElement("div");
+        row.className = "step";
+        row.innerHTML = `
+          <div style="display:flex; gap:10px; align-items:center; min-width:0">
+            <div class="chip">${idx+1}. ${escapeHtml(s.title)}</div>
+            <div class="desc">${escapeHtml(s.desc)}</div>
+          </div>
+          <div class="tick" id="tick-${s.key}"></div>
+        `;
+        stepsEl.appendChild(row);
+      });
+    }
+    function setTick(key, on){
+      const node = document.getElementById(`tick-${key}`);
+      if(!node) return;
+      node.classList.toggle("on", !!on);
+    }
+
+    async function decodeToCanvas(file, targetW=240){
+      try{
+        if("createImageBitmap" in window){
+          const bmp = await createImageBitmap(file).catch(()=>null);
+          if(bmp){
+            const w = targetW;
+            const h = Math.max(120, Math.round(targetW * (bmp.height / bmp.width)));
+            const c = document.createElement("canvas");
+            c.width = w; c.height = Math.min(260, h);
+            const ctx = c.getContext("2d", { willReadFrequently:true });
+            ctx.drawImage(bmp, 0, 0, c.width, c.height);
+            try{ bmp.close && bmp.close(); }catch{}
+            return { canvas:c, decodeFailed:false };
+          }
+        }
+      }catch{}
+
+      const url = URL.createObjectURL(file);
+      try{
+        const img = new Image();
+        img.decoding = "async";
+        img.src = url;
+        await new Promise((resolve, reject)=>{
+          img.onload = ()=>resolve();
+          img.onerror = ()=>reject(new Error("img load failed"));
+        });
+        const w = targetW;
+        const h = Math.max(120, Math.round(targetW * (img.height / img.width)));
+        const c = document.createElement("canvas");
+        c.width = w; c.height = Math.min(260, h);
+        const ctx = c.getContext("2d", { willReadFrequently:true });
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        return { canvas:c, decodeFailed:false };
+      }catch{
+        return { canvas:null, decodeFailed:true };
+      }finally{
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function computeMetrics(file){
+      const { canvas, decodeFailed } = await decodeToCanvas(file, 260);
+      if(decodeFailed || !canvas){
+        return {
+          mean:140, contrast:20,
+          highlightRatio:0.10,
+          glossyRatio:0.10,
+          sharpness:6,
+          decodeFailed:true
+        };
+      }
+
+      const ctx = canvas.getContext("2d", { willReadFrequently:true });
+      const { data } = ctx.getImageData(0,0,canvas.width,canvas.height);
+
+      let sum=0, sum2=0, n=0;
+      let hi=0, satHi=0, grad=0;
+
+      const step = 4;
+      for(let y=0;y<canvas.height;y+=step){
+        for(let x=0;x<canvas.width;x+=step){
+          const i = (y*canvas.width + x) * 4;
+          const r = data[i], g = data[i+1], b = data[i+2];
+
+          const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+          sum += lum; sum2 += lum*lum; n++;
+
+          if(lum > 235) hi++;
+
+          const max = Math.max(r,g,b);
+          const min = Math.min(r,g,b);
+          const sat = max === 0 ? 0 : (max-min)/max;
+
+          if(lum > 230 && sat < 0.18) satHi++;
+
+          if(x+step < canvas.width){
+            const j = (y*canvas.width + (x+step)) * 4;
+            const r2 = data[j], g2 = data[j+1], b2 = data[j+2];
+            const lum2 = 0.2126*r2 + 0.7152*g2 + 0.0722*b2;
+            grad += Math.abs(lum2 - lum);
+          }
+        }
+      }
+
+      const mean = sum / n;
+      const variance = Math.max(0, (sum2/n) - mean*mean);
+      const contrast = Math.sqrt(variance);
+      const highlightRatio = hi / n;
+      const glossyRatio = satHi / n;
+      const sharpness = grad / n;
+
+      return { mean, contrast, highlightRatio, glossyRatio, sharpness, decodeFailed:false };
+    }
+
+    function classify(signals, rng){
+      const { coverage, clarity, consistency, riskScore } = signals;
+
+      let score =
+        48
+        + (coverage - 0.52) * 46
+        + (clarity  - 0.52) * 56
+        + (consistency - 0.55) * 26
+        - (riskScore) * 58;
+
+      if(activeCategoryKey === "leather" && riskScore > 0.40) score -= 6;
+      if(activeCategoryKey === "shoes" && coverage < 0.62) score -= 8;
+
+      score += (rng() - 0.5) * 14;
+      score = Math.round(clamp(score, 0, 100));
+
+      let level = "НОРМ";
+      if(score >= 86) level = "ДОРОГО";
+      if(score < 56) level = "НЕ СЕГОДНЯ";
+
+      let confidence = "MEDIUM";
+      if(coverage >= 0.84 && clarity >= 0.68 && riskScore <= 0.26) confidence = "HIGH";
+      if(coverage <= 0.50 || clarity <= 0.40 || riskScore >= 0.62) confidence = "LOW";
+
+      return { score, level, confidence };
+    }
+
+    function badgeClass(level){
+      if(level === "ДОРОГО") return "good";
+      if(level === "НОРМ") return "warn";
+      return "bad";
+    }
+
+    function pickSellerMessages(category, rng){
+      return shuffleWithRng(category.sellerMessages, rng).slice(0, 3);
+    }
+
+    async function runScan(){
+      if(filesState.length < 1){
+        toast("Добавь хотя бы 1 фото");
+        return;
+      }
+
+      const category = getCategory();
+      const seed = seedFromFiles(filesState, activeCategoryKey);
+      const rng = mulberry32(seed);
+
+      toScan();
+      buildStepsUI(category);
+
+      category.steps.forEach(s=>setTick(s.key,false));
+      pct.textContent = "0%";
+      barFill.style.width = "0%";
+      timerEl.textContent = "0:00";
+      scanTip.textContent = pick(rng, [
+        "Считываем детали…",
+        "Проверяем полноту фото…",
+        "Ищем фото-риски…",
+        "Собираем рекомендации…"
+      ]);
+
+      const metricsPromise = Promise.all(filesState.map(f=>computeMetrics(f)));
+
+      const start = performance.now();
+      const duration = 7800;
+
+      const moments = [
+        { t:0.18, key:category.steps[0]?.key, tip:"Проверяем, хватает ли деталей…" },
+        { t:0.38, key:category.steps[1]?.key, tip:"Оцениваем чёткость…" },
+        { t:0.58, key:category.steps[2]?.key, tip:"Сверяем согласованность кадров…" },
+        { t:0.78, key:category.steps[3]?.key, tip:"Ищем блики и обработку…" },
+        { t:0.92, key:category.steps[4]?.key, tip:"Собираем вопросы продавцу…" }
+      ].filter(m=>m.key);
+
+      const tickFrame = (now)=>{
+        const p = clamp((now - start)/duration, 0, 1);
+        const percent = Math.round(p*100);
+        pct.textContent = `${percent}%`;
+        barFill.style.width = `${percent}%`;
+        timerEl.textContent = fmtTime(Math.round(p*20));
+
+        for(const m of moments){
+          if(p >= m.t){
+            setTick(m.key, true);
+            scanTip.textContent = m.tip;
+          }
+        }
+
+        if(p < 1){
+          requestAnimationFrame(tickFrame);
+        }
+      };
+      requestAnimationFrame(tickFrame);
+
+      const minWait = new Promise(res=>setTimeout(res, duration + 80));
+      let metrics = null;
+      try{
+        await minWait;
+        metrics = await metricsPromise;
+      }catch{
+        metrics = await metricsPromise.catch(()=>[]);
+      }
+
+      const coverage =
+        filesState.length === 1 ? 0.38 :
+        filesState.length === 2 ? 0.62 : 0.84;
+
+      const m = metrics.length ? metrics : [{mean:140,contrast:20,highlightRatio:0.10,glossyRatio:0.10,sharpness:6,decodeFailed:true}];
+      const sharpAvg = m.reduce((a,x)=>a+x.sharpness,0)/m.length;
+      const contrAvg = m.reduce((a,x)=>a+x.contrast,0)/m.length;
+      const glossyAvg = m.reduce((a,x)=>a+x.glossyRatio,0)/m.length;
+      const hiAvg = m.reduce((a,x)=>a+x.highlightRatio,0)/m.length;
+
+      const clarity = clamp((sharpAvg/18)*0.65 + (contrAvg/55)*0.35, 0, 1);
+
+      const meanVals = m.map(x=>x.mean);
+      const meanSpread = Math.max(...meanVals) - Math.min(...meanVals);
+      const consistency = clamp(1 - (meanSpread/90), 0, 1);
+
+      let risk = 0;
+      if(filesState.length === 1) risk += 0.30;
+      if(clarity < 0.40) risk += 0.30;
+      if(glossyAvg > 0.09 || hiAvg > 0.12) risk += 0.22;
+      if(consistency < 0.45 && filesState.length >= 2) risk += 0.18;
+      if(contrAvg > 60 && sharpAvg < 10) risk += 0.14;
+      if(m.some(x=>x.decodeFailed)) risk += 0.16;
+
+      if(activeCategoryKey === "leather" && (glossyAvg > 0.07 || hiAvg > 0.10)) risk += 0.10;
+      if(activeCategoryKey === "shoes" && coverage < 0.60) risk += 0.10;
+
+      const riskScore = clamp(risk, 0, 1);
+
+      updateKpi(clarity);
+
+      const anyDecodeFail = m.some(x=>x.decodeFailed);
+      decodeNote.style.display = anyDecodeFail ? "" : "none";
+
+      finishResult(category, {
+        coverage, clarity, consistency, riskScore,
+        glossyAvg, hiAvg, contrAvg, sharpAvg,
+        rng
+      });
+    }
+
+    function finishResult(category, ctx){
+      const { coverage, clarity, consistency, riskScore, rng } = ctx;
+      const { score, level, confidence } = classify({ coverage, clarity, consistency, riskScore }, rng);
+
+      levelBadge.className = `badge ${badgeClass(level)}`;
+      levelBadge.textContent = `РЕЗУЛЬТАТ: ${level}`;
+
+      levelTitle.textContent = level;
+
+      const riskTxt = riskScore < 0.25 ? "низкий" : riskScore < 0.55 ? "средний" : "высокий";
+      const glossy = (ctx.glossyAvg > 0.09 || ctx.hiAvg > 0.12);
+      const ask = pick(rng, category.askPool);
+
+      if(level === "ДОРОГО"){
+        levelSubtitle.textContent = "Качество выглядит убедительно. Что думаешь, покупаем?";
+      } else if(level === "НОРМ"){
+        levelSubtitle.textContent = "В целом выглядит достойно, но есть вопросы по деталям. Попроси дополнительно фото со швами (или кромки, фактуры ткани), и решение будет точнее.";
+      } else {
+        levelSubtitle.textContent = "Контроль качества по фото не проходит! Требуй фото без фильтров или выбирай альтернативу.";
+      }
+
+      scorePill.textContent = `SCORE: ${score}/100`;
+      updateKpi({ clarity, score, level });
+
+      complimentEl.textContent = pick(rng, COMPLIMENTS);
+
+      const adv = buildEditorialAdvice(category, { coverage, clarity, consistency, riskScore, glossy }, level);
+
+      flagsList.innerHTML = `
+        <div class="adviceCol">
+          ${adv.tips.map(x=>`
+            <div class="adviceCard">
+              <div class="adviceTitle">${escapeHtml(x.t)}</div>
+              <div class="adviceText">${escapeHtml(x.d)}</div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="adviceFinal">${escapeHtml(adv.final)}</div>
+      `;
+
+      const obs = buildObservations(category, {
+        coverage,
+        clarity,
+        consistency,
+        riskScore,
+        glossy,
+        ask,
+        riskTxt
+      }, rng);
+
+      obsList.innerHTML = obs.map(t=>`
+        <div class="li">
+          <div class="ico"></div>
+          <div><div style="font-weight:900">${escapeHtml(t)}</div></div>
+        </div>
+      `).join("");
+
+      const msgs = pickSellerMessages(category, rng);
+      sellerMsgs.innerHTML = msgs.map((m,i)=>`
+        <div style="padding:10px 0; border-top:1px dashed rgba(2,6,23,.12)">
+          <div class="mono" style="font-weight:900; color:rgba(2,6,23,.78)">Сообщение ${i+1}</div>
+          <div style="margin-top:6px"><b>RU:</b> ${escapeHtml(m.ru)}</div>
+          <div style="margin-top:6px"><b>中文:</b> ${escapeHtml(m.zh)}</div>
+        </div>
+      `).join("");
+
+
+      if (btnCopySeller) {
+        btnCopySeller.onclick = async () => {
+          const text = msgs
+            .map((m, i) => `Сообщение ${i + 1}\nRU: ${m.ru}\n中文: ${m.zh}\n`)
+            .join("\n");
+
+          try {
+            await navigator.clipboard.writeText(text);
+            toast("Текст для продавца скопирован");
+          } catch {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand("copy");
+              toast("Текст для продавца скопирован");
+            } catch {
+              toast("Не получилось скопировать");
+            } finally {
+              ta.remove();
+            }
+          }
+        };
+      }
+
+      btnShare2.onclick = async ()=>{
+        const text = `Casual Anatomy: Risk Scan • ${category.label}: ${level} • Score ${score}/100 • Риск: ${riskTxt}`;
+        await sharePage(text);
+      };
+
+      btnBack.onclick = ()=>toReady();
+
+      toResult();
+    }
+
+    btnStart.addEventListener("click", runScan);
+    btnStart2.addEventListener("click", runScan);
+    btnStartMobile.addEventListener("click", runScan);
+
+    function setDefaults(){
+      activeCategoryKey = categorySelect.value;
+      applyCategoryUI();
+      updateKpi();
+      setButtons();
+      toReady();
+      renderThumbs();
+    }
+
+    window.addEventListener("beforeunload", ()=>revokePreviews());
+    setDefaults();
+  </script>
+</body>
+</html>
