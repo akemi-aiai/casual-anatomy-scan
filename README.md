@@ -1,6 +1,6 @@
 # Casual Anatomy: Risk Scan
 
-Interactive client demo: a **risk scan by 1–3 photos** (runs **locally in the browser**).
+Upload 1–3 photos and get a refined risk breakdown. What looks suspicious, what’s missing, and the exact questions to send the seller. Runs locally in your browser — no uploads, no cloud
 
 ## Demo
 Open: https://akemi-aiai.github.io/casual-anatomy-scan/
@@ -11,7 +11,7 @@ Open: https://akemi-aiai.github.io/casual-anatomy-scan/
 - Produces:
   - Risk level
   - Quality checklist
-  - Suggested seller messages (RU + 中文)
+  - Suggested seller messages (RU/EN + 中文)
 
 ## Privacy
 Photos are processed **locally** in the browser.  
